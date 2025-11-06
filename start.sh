@@ -44,10 +44,10 @@ detect_compose_cmd() {
     elif command -v docker-compose &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     else
-        print_error "Docker Compose 未安装！请先安装 Docker Compose"
+        print_error "Docker Compose is not installed! Please install Docker Compose first"
         exit 1
     fi
-    print_info "使用 Docker Compose 命令: $COMPOSE_CMD"
+    print_info "Using Docker Compose command: $COMPOSE_CMD"
 }
 
 # ------------------------------------------------------------------------
@@ -55,12 +55,12 @@ detect_compose_cmd() {
 # ------------------------------------------------------------------------
 check_docker() {
     if ! command -v docker &> /dev/null; then
-        print_error "Docker 未安装！请先安装 Docker: https://docs.docker.com/get-docker/"
+        print_error "Docker is not installed! Please install Docker first: https://docs.docker.com/get-docker/"
         exit 1
     fi
 
     detect_compose_cmd
-    print_success "Docker 和 Docker Compose 已安装"
+    print_success "Docker and Docker Compose are installed"
 }
 
 # ------------------------------------------------------------------------
@@ -68,12 +68,12 @@ check_docker() {
 # ------------------------------------------------------------------------
 check_env() {
     if [ ! -f ".env" ]; then
-        print_warning ".env 不存在，从模板复制..."
+        print_warning ".env does not exist, copying from template..."
         cp .env.example .env
-        print_info "✓ 已使用默认环境变量创建 .env"
-        print_info "💡 如需修改端口等设置，可编辑 .env 文件"
+        print_info "✓ Created .env with default environment variables"
+        print_info "💡 To modify settings like ports, edit the .env file"
     fi
-    print_success "环境变量文件存在"
+    print_success "Environment variable file exists"
 }
 
 # ------------------------------------------------------------------------
@@ -81,13 +81,13 @@ check_env() {
 # ------------------------------------------------------------------------
 check_config() {
     if [ ! -f "config.json" ]; then
-        print_warning "config.json 不存在，从模板复制..."
+        print_warning "config.json does not exist, copying from template..."
         cp config.json.example config.json
-        print_info "✓ 已使用默认配置创建 config.json"
-        print_info "💡 如需修改基础设置（杠杆大小、开仓币种、管理员模式、JWT密钥等），可编辑 config.json"
-        print_info "💡 模型/交易所/交易员配置请使用Web界面"
+        print_info "✓ Created config.json with default configuration"
+        print_info "💡 To modify basic settings (leverage size, trading pairs, admin mode, JWT secret, etc.), edit config.json"
+        print_info "💡 Model/exchange/trader configuration should be done via the Web interface"
     fi
-    print_success "配置文件存在"
+    print_success "Configuration file exists"
 }
 
 # ------------------------------------------------------------------------
@@ -95,19 +95,19 @@ check_config() {
 # ------------------------------------------------------------------------
 read_env_vars() {
     if [ -f ".env" ]; then
-        # 读取端口配置，设置默认值
+        # Read port configuration, set default values
         NOFX_FRONTEND_PORT=$(grep "^NOFX_FRONTEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "3000")
         NOFX_BACKEND_PORT=$(grep "^NOFX_BACKEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "8080")
         
-        # 去除可能的引号和空格
+        # Remove possible quotes and spaces
         NOFX_FRONTEND_PORT=$(echo "$NOFX_FRONTEND_PORT" | tr -d '"'"'" | tr -d ' ')
         NOFX_BACKEND_PORT=$(echo "$NOFX_BACKEND_PORT" | tr -d '"'"'" | tr -d ' ')
         
-        # 如果为空则使用默认值
+        # Use default value if empty
         NOFX_FRONTEND_PORT=${NOFX_FRONTEND_PORT:-3000}
         NOFX_BACKEND_PORT=${NOFX_BACKEND_PORT:-8080}
     else
-        # 如果.env不存在，使用默认端口
+        # If .env does not exist, use default ports
         NOFX_FRONTEND_PORT=3000
         NOFX_BACKEND_PORT=8080
     fi
@@ -118,12 +118,12 @@ read_env_vars() {
 # ------------------------------------------------------------------------
 check_database() {
     if [ ! -f "config.db" ]; then
-        print_warning "数据库文件不存在，创建空数据库文件..."
-        # 创建空文件以避免Docker创建目录
+        print_warning "Database file does not exist, creating empty database file..."
+        # Create empty file to prevent Docker from creating a directory
         touch config.db
-        print_info "✓ 已创建空数据库文件，系统将在启动时初始化"
+        print_info "✓ Created empty database file, system will initialize on startup"
     else
-        print_success "数据库文件存在"
+        print_success "Database file exists"
     fi
 }
 
@@ -131,47 +131,47 @@ check_database() {
 # Build: Frontend (Node.js Based)
 # ------------------------------------------------------------------------
 # build_frontend() {
-#     print_info "检查前端构建环境..."
+#     print_info "Checking frontend build environment..."
 
 #     if ! command -v node &> /dev/null; then
-#         print_error "Node.js 未安装！请先安装 Node.js"
+#         print_error "Node.js is not installed! Please install Node.js first"
 #         exit 1
 #     fi
 
 #     if ! command -v npm &> /dev/null; then
-#         print_error "npm 未安装！请先安装 npm"
+#         print_error "npm is not installed! Please install npm first"
 #         exit 1
 #     fi
 
-#     print_info "正在构建前端..."
+#     print_info "Building frontend..."
 #     cd web
 
-#     print_info "安装 Node.js 依赖..."
+#     print_info "Installing Node.js dependencies..."
 #     npm install
 
-#     print_info "构建前端应用..."
+#     print_info "Building frontend application..."
 #     npm run build
 
 #     cd ..
-#     print_success "前端构建完成"
+#     print_success "Frontend build completed"
 # }
 
 # ------------------------------------------------------------------------
 # Service Management: Start
 # ------------------------------------------------------------------------
 start() {
-    print_info "正在启动 NOFX AI Trading System..."
+    print_info "Starting NOFX AI Trading System..."
 
-    # 读取环境变量
+    # Read environment variables
     read_env_vars
 
-    # 确保必要的文件和目录存在（修复 Docker volume 挂载问题）
+    # Ensure necessary files and directories exist (fix Docker volume mount issues)
     if [ ! -f "config.db" ]; then
-        print_info "创建数据库文件..."
+        print_info "Creating database file..."
         touch config.db
     fi
     if [ ! -d "decision_logs" ]; then
-        print_info "创建日志目录..."
+        print_info "Creating logs directory..."
         mkdir -p decision_logs
     fi
 
@@ -182,37 +182,37 @@ start() {
 
     # Rebuild images if flag set
     if [ "$1" == "--build" ]; then
-        print_info "重新构建镜像..."
+        print_info "Rebuilding images..."
         $COMPOSE_CMD up -d --build
     else
-        print_info "启动容器..."
+        print_info "Starting containers..."
         $COMPOSE_CMD up -d
     fi
 
-    print_success "服务已启动！"
-    print_info "Web 界面: http://localhost:${NOFX_FRONTEND_PORT}"
-    print_info "API 端点: http://localhost:${NOFX_BACKEND_PORT}"
+    print_success "Services started!"
+    print_info "Web interface: http://localhost:${NOFX_FRONTEND_PORT}"
+    print_info "API endpoint: http://localhost:${NOFX_BACKEND_PORT}"
     print_info ""
-    print_info "查看日志: ./start.sh logs"
-    print_info "停止服务: ./start.sh stop"
+    print_info "View logs: ./start.sh logs"
+    print_info "Stop services: ./start.sh stop"
 }
 
 # ------------------------------------------------------------------------
 # Service Management: Stop
 # ------------------------------------------------------------------------
 stop() {
-    print_info "正在停止服务..."
+    print_info "Stopping services..."
     $COMPOSE_CMD stop
-    print_success "服务已停止"
+    print_success "Services stopped"
 }
 
 # ------------------------------------------------------------------------
 # Service Management: Restart
 # ------------------------------------------------------------------------
 restart() {
-    print_info "正在重启服务..."
+    print_info "Restarting services..."
     $COMPOSE_CMD restart
-    print_success "服务已重启"
+    print_success "Services restarted"
 }
 
 # ------------------------------------------------------------------------
@@ -230,28 +230,28 @@ logs() {
 # Monitoring: Status
 # ------------------------------------------------------------------------
 status() {
-    # 读取环境变量
+    # Read environment variables
     read_env_vars
     
-    print_info "服务状态:"
+    print_info "Service status:"
     $COMPOSE_CMD ps
     echo ""
-    print_info "健康检查:"
-    curl -s "http://localhost:${NOFX_BACKEND_PORT}/api/health" | jq '.' || echo "后端未响应"
+    print_info "Health check:"
+    curl -s "http://localhost:${NOFX_BACKEND_PORT}/api/health" | jq '.' || echo "Backend not responding"
 }
 
 # ------------------------------------------------------------------------
 # Maintenance: Clean (Destructive)
 # ------------------------------------------------------------------------
 clean() {
-    print_warning "这将删除所有容器和数据！"
-    read -p "确认删除？(yes/no): " confirm
+    print_warning "This will delete all containers and data!"
+    read -p "Confirm deletion? (yes/no): " confirm
     if [ "$confirm" == "yes" ]; then
-        print_info "正在清理..."
+        print_info "Cleaning up..."
         $COMPOSE_CMD down -v
-        print_success "清理完成"
+        print_success "Cleanup completed"
     else
-        print_info "已取消"
+        print_info "Cancelled"
     fi
 }
 
@@ -259,34 +259,34 @@ clean() {
 # Maintenance: Update
 # ------------------------------------------------------------------------
 update() {
-    print_info "正在更新..."
+    print_info "Updating..."
     git pull
     $COMPOSE_CMD up -d --build
-    print_success "更新完成"
+    print_success "Update completed"
 }
 
 # ------------------------------------------------------------------------
 # Help: Usage Information
 # ------------------------------------------------------------------------
 show_help() {
-    echo "NOFX AI Trading System - Docker 管理脚本"
+    echo "NOFX AI Trading System - Docker Management Script"
     echo ""
-    echo "用法: ./start.sh [command] [options]"
+    echo "Usage: ./start.sh [command] [options]"
     echo ""
-    echo "命令:"
-    echo "  start [--build]    启动服务（可选：重新构建）"
-    echo "  stop               停止服务"
-    echo "  restart            重启服务"
-    echo "  logs [service]     查看日志（可选：指定服务名 backend/frontend）"
-    echo "  status             查看服务状态"
-    echo "  clean              清理所有容器和数据"
-    echo "  update             更新代码并重启"
-    echo "  help               显示此帮助信息"
+    echo "Commands:"
+    echo "  start [--build]    Start services (optional: rebuild)"
+    echo "  stop               Stop services"
+    echo "  restart            Restart services"
+    echo "  logs [service]     View logs (optional: specify service name backend/frontend)"
+    echo "  status             View service status"
+    echo "  clean              Clean all containers and data"
+    echo "  update             Update code and restart"
+    echo "  help               Show this help message"
     echo ""
-    echo "示例:"
-    echo "  ./start.sh start --build    # 构建并启动"
-    echo "  ./start.sh logs backend     # 查看后端日志"
-    echo "  ./start.sh status           # 查看状态"
+    echo "Examples:"
+    echo "  ./start.sh start --build    # Build and start"
+    echo "  ./start.sh logs backend     # View backend logs"
+    echo "  ./start.sh status           # View status"
 }
 
 # ------------------------------------------------------------------------
@@ -324,7 +324,7 @@ main() {
             show_help
             ;;
         *)
-            print_error "未知命令: $1"
+            print_error "Unknown command: $1"
             show_help
             exit 1
             ;;
