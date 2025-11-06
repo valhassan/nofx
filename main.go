@@ -19,13 +19,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// LeverageConfig 杠杆配置
+// LeverageConfig leverage configuration
 type LeverageConfig struct {
 	BTCETHLeverage  int `json:"btc_eth_leverage"`
 	AltcoinLeverage int `json:"altcoin_leverage"`
 }
 
-// ConfigFile 配置文件结构，只包含需要同步到数据库的字段
+// ConfigFile configuration file structure, only contains fields that need to be synced to database
 type ConfigFile struct {
 	AdminMode          bool              `json:"admin_mode"`
 	BetaMode           bool              `json:"beta_mode"`
@@ -40,41 +40,41 @@ type ConfigFile struct {
 	Leverage           LeverageConfig    `json:"leverage"`
 	JWTSecret          string            `json:"jwt_secret"`
 	DataKLineTime      string            `json:"data_k_line_time"`
-	Log                *config.LogConfig `json:"log"` // 日志配置
+	Log                *config.LogConfig `json:"log"` // log configuration
 }
 
-// loadConfigFile 读取并解析config.json文件
+// loadConfigFile reads and parses config.json file
 func loadConfigFile() (*ConfigFile, error) {
-	// 检查config.json是否存在
+	// Check if config.json exists
 	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
-		log.Printf("📄 config.json不存在，使用默认配置")
+		log.Printf("📄 config.json does not exist, using default configuration")
 		return &ConfigFile{}, nil
 	}
 
-	// 读取config.json
+	// Read config.json
 	data, err := os.ReadFile("config.json")
 	if err != nil {
-		return nil, fmt.Errorf("读取config.json失败: %w", err)
+		return nil, fmt.Errorf("failed to read config.json: %w", err)
 	}
 
-	// 解析JSON
+	// Parse JSON
 	var configFile ConfigFile
 	if err := json.Unmarshal(data, &configFile); err != nil {
-		return nil, fmt.Errorf("解析config.json失败: %w", err)
+		return nil, fmt.Errorf("failed to parse config.json: %w", err)
 	}
 
 	return &configFile, nil
 }
 
-// syncConfigToDatabase 将配置同步到数据库
+// syncConfigToDatabase syncs configuration to database
 func syncConfigToDatabase(database *config.Database, configFile *ConfigFile) error {
 	if configFile == nil {
 		return nil
 	}
 
-	log.Printf("🔄 开始同步config.json到数据库...")
+	log.Printf("🔄 Starting to sync config.json to database...")
 
-	// 同步各配置项到数据库
+	// Sync each configuration item to database
 	configs := map[string]string{
 		"admin_mode":           fmt.Sprintf("%t", configFile.AdminMode),
 		"beta_mode":            fmt.Sprintf("%t", configFile.BetaMode),
@@ -87,7 +87,7 @@ func syncConfigToDatabase(database *config.Database, configFile *ConfigFile) err
 		"stop_trading_minutes": strconv.Itoa(configFile.StopTradingMinutes),
 	}
 
-	// 同步default_coins（转换为JSON字符串存储）
+	// Sync default_coins (convert to JSON string for storage)
 	if len(configFile.DefaultCoins) > 0 {
 		defaultCoinsJSON, err := json.Marshal(configFile.DefaultCoins)
 		if err == nil {
@@ -95,7 +95,7 @@ func syncConfigToDatabase(database *config.Database, configFile *ConfigFile) err
 		}
 	}
 
-	// 同步杠杆配置
+	// Sync leverage configuration
 	if configFile.Leverage.BTCETHLeverage > 0 {
 		configs["btc_eth_leverage"] = strconv.Itoa(configFile.Leverage.BTCETHLeverage)
 	}
@@ -103,54 +103,54 @@ func syncConfigToDatabase(database *config.Database, configFile *ConfigFile) err
 		configs["altcoin_leverage"] = strconv.Itoa(configFile.Leverage.AltcoinLeverage)
 	}
 
-	// 如果JWT密钥不为空，也同步
+	// If JWT secret is not empty, also sync it
 	if configFile.JWTSecret != "" {
 		configs["jwt_secret"] = configFile.JWTSecret
 	}
 
-	// 更新数据库配置
+	// Update database configuration
 	for key, value := range configs {
 		if err := database.SetSystemConfig(key, value); err != nil {
-			log.Printf("⚠️  更新配置 %s 失败: %v", key, err)
+			log.Printf("⚠️  Failed to update config %s: %v", key, err)
 		} else {
-			log.Printf("✓ 同步配置: %s = %s", key, value)
+			log.Printf("✓ Synced config: %s = %s", key, value)
 		}
 	}
 
-	log.Printf("✅ config.json同步完成")
+	log.Printf("✅ config.json sync completed")
 	return nil
 }
 
-// loadBetaCodesToDatabase 加载内测码文件到数据库
+// loadBetaCodesToDatabase loads beta code file to database
 func loadBetaCodesToDatabase(database *config.Database) error {
 	betaCodeFile := "beta_codes.txt"
 
-	// 检查内测码文件是否存在
+	// Check if beta code file exists
 	if _, err := os.Stat(betaCodeFile); os.IsNotExist(err) {
-		log.Printf("📄 内测码文件 %s 不存在，跳过加载", betaCodeFile)
+		log.Printf("📄 Beta code file %s does not exist, skipping load", betaCodeFile)
 		return nil
 	}
 
-	// 获取文件信息
+	// Get file information
 	fileInfo, err := os.Stat(betaCodeFile)
 	if err != nil {
-		return fmt.Errorf("获取内测码文件信息失败: %w", err)
+		return fmt.Errorf("failed to get beta code file info: %w", err)
 	}
 
-	log.Printf("🔄 发现内测码文件 %s (%.1f KB)，开始加载...", betaCodeFile, float64(fileInfo.Size())/1024)
+	log.Printf("🔄 Found beta code file %s (%.1f KB), starting to load...", betaCodeFile, float64(fileInfo.Size())/1024)
 
-	// 加载内测码到数据库
+	// Load beta codes to database
 	err = database.LoadBetaCodesFromFile(betaCodeFile)
 	if err != nil {
-		return fmt.Errorf("加载内测码失败: %w", err)
+		return fmt.Errorf("failed to load beta codes: %w", err)
 	}
 
-	// 显示统计信息
+	// Display statistics
 	total, used, err := database.GetBetaCodeStats()
 	if err != nil {
-		log.Printf("⚠️  获取内测码统计失败: %v", err)
+		log.Printf("⚠️  Failed to get beta code statistics: %v", err)
 	} else {
-		log.Printf("✅ 内测码加载完成: 总计 %d 个，已使用 %d 个，剩余 %d 个", total, used, total-used)
+		log.Printf("✅ Beta code loading completed: Total %d, Used %d, Remaining %d", total, used, total-used)
 	}
 
 	return nil
@@ -158,7 +158,7 @@ func loadBetaCodesToDatabase(database *config.Database) error {
 
 func main() {
 	fmt.Println("╔════════════════════════════════════════════════════════════╗")
-	fmt.Println("║    🤖 AI多模型交易系统 - 支持 DeepSeek & Qwen            ║")
+	fmt.Println("║ 🤖 AI Multi-Model Trading System - DeepSeek & Qwen         ║")
 	fmt.Println("╚════════════════════════════════════════════════════════════╝")
 	fmt.Println()
 
@@ -166,53 +166,53 @@ func main() {
 	// In Docker Compose, variables are injected by the runtime and this is harmless.
 	_ = godotenv.Load()
 
-	// 初始化数据库配置
+	// Initialize configuration database
 	dbPath := "config.db"
 	if len(os.Args) > 1 {
 		dbPath = os.Args[1]
 	}
 
-	// 读取配置文件
+	// Read configuration file
 	configFile, err := loadConfigFile()
 	if err != nil {
-		log.Fatalf("❌ 读取config.json失败: %v", err)
+		log.Fatalf("❌ Failed to read config.json: %v", err)
 	}
 
-	log.Printf("📋 初始化配置数据库: %s", dbPath)
+	log.Printf("📋 Initializing configuration database: %s", dbPath)
 	database, err := config.NewDatabase(dbPath)
 	if err != nil {
-		log.Fatalf("❌ 初始化数据库失败: %v", err)
+		log.Fatalf("❌ Failed to initialize database: %v", err)
 	}
 	defer database.Close()
 
-	// 同步config.json到数据库
+	// Sync config.json to database
 	if err := syncConfigToDatabase(database, configFile); err != nil {
-		log.Printf("⚠️  同步config.json到数据库失败: %v", err)
+		log.Printf("⚠️  Failed to sync config.json to database: %v", err)
 	}
 
-	// 加载内测码到数据库
+	// Load beta codes to database
 	if err := loadBetaCodesToDatabase(database); err != nil {
-		log.Printf("⚠️  加载内测码到数据库失败: %v", err)
+		log.Printf("⚠️  Failed to load beta codes to database: %v", err)
 	}
 
-	// 获取系统配置
+	// Get system configuration
 	useDefaultCoinsStr, _ := database.GetSystemConfig("use_default_coins")
 	useDefaultCoins := useDefaultCoinsStr == "true"
 	apiPortStr, _ := database.GetSystemConfig("api_server_port")
 
-	// 获取管理员模式配置
+	// Get admin mode configuration
 	adminModeStr, _ := database.GetSystemConfig("admin_mode")
-	adminMode := adminModeStr != "false" // 默认为true
+	adminMode := adminModeStr != "false" // Defaults to true
 
-	// 设置JWT密钥
+	// Set JWT secret
 	jwtSecret, _ := database.GetSystemConfig("jwt_secret")
 	if jwtSecret == "" {
 		jwtSecret = "your-jwt-secret-key-change-in-production-make-it-long-and-random"
-		log.Printf("⚠️  使用默认JWT密钥，建议在生产环境中配置")
+		log.Printf("⚠️  Using default JWT secret, recommended to configure in production environment")
 	}
 	auth.SetJWTSecret(jwtSecret)
 
-	// 管理员模式下需要管理员密码，缺失则退出
+	// Admin mode requires admin password, exit if missing
 	if adminMode {
 		adminPassword := os.Getenv("NOFX_ADMIN_PASSWORD")
 		if adminPassword == "" {
@@ -225,125 +225,125 @@ func main() {
 		log.Printf("✓ Admin mode enabled. All API endpoints require admin authentication.")
 	}
 
-	log.Printf("✓ 配置数据库初始化成功")
+	log.Printf("✓ Configuration database initialized successfully")
 	fmt.Println()
 
-	// 从数据库读取默认主流币种列表
+	// Read default coin list from database
 	defaultCoinsJSON, _ := database.GetSystemConfig("default_coins")
 	var defaultCoins []string
 
 	if defaultCoinsJSON != "" {
-		// 尝试从JSON解析
+		// Try to parse from JSON
 		if err := json.Unmarshal([]byte(defaultCoinsJSON), &defaultCoins); err != nil {
-			log.Printf("⚠️  解析default_coins配置失败: %v，使用硬编码默认值", err)
+			log.Printf("⚠️  Failed to parse default_coins configuration: %v, using hardcoded default values", err)
 			defaultCoins = []string{"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "HYPEUSDT"}
 		} else {
-			log.Printf("✓ 从数据库加载默认币种列表（共%d个）: %v", len(defaultCoins), defaultCoins)
+			log.Printf("✓ Loaded default coin list from database (%d coins): %v", len(defaultCoins), defaultCoins)
 		}
 	} else {
-		// 如果数据库中没有配置，使用硬编码默认值
+		// If not configured in database, use hardcoded default values
 		defaultCoins = []string{"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "HYPEUSDT"}
-		log.Printf("⚠️  数据库中未配置default_coins，使用硬编码默认值")
+		log.Printf("⚠️  default_coins not configured in database, using hardcoded default values")
 	}
 
 	pool.SetDefaultCoins(defaultCoins)
-	// 设置是否使用默认主流币种
+	// Set whether to use default mainstream coins
 	pool.SetUseDefaultCoins(useDefaultCoins)
 	if useDefaultCoins {
-		log.Printf("✓ 已启用默认主流币种列表")
+		log.Printf("✓ Default mainstream coin list enabled")
 	}
 
-	// 设置币种池API URL
+	// Set coin pool API URL
 	coinPoolAPIURL, _ := database.GetSystemConfig("coin_pool_api_url")
 	if coinPoolAPIURL != "" {
 		pool.SetCoinPoolAPI(coinPoolAPIURL)
-		log.Printf("✓ 已配置AI500币种池API")
+		log.Printf("✓ AI500 coin pool API configured")
 	}
 
 	oiTopAPIURL, _ := database.GetSystemConfig("oi_top_api_url")
 	if oiTopAPIURL != "" {
 		pool.SetOITopAPI(oiTopAPIURL)
-		log.Printf("✓ 已配置OI Top API")
+		log.Printf("✓ OI Top API configured")
 	}
 
-	// 创建TraderManager
+	// Create TraderManager
 	traderManager := manager.NewTraderManager()
 
-	// 从数据库加载所有交易员到内存
+	// Load all traders from database to memory
 	err = traderManager.LoadTradersFromDatabase(database)
 	if err != nil {
-		log.Fatalf("❌ 加载交易员失败: %v", err)
+		log.Fatalf("❌ Failed to load traders: %v", err)
 	}
 
-	// 获取数据库中的所有交易员配置（用于显示，使用default用户）
+	// Get all trader configurations from database (for display, using default user)
 	traders, err := database.GetTraders("default")
 	if err != nil {
-		log.Fatalf("❌ 获取交易员列表失败: %v", err)
+		log.Fatalf("❌ Failed to get trader list: %v", err)
 	}
 
-	// 显示加载的交易员信息
+	// Display loaded trader information
 	fmt.Println()
-	fmt.Println("🤖 数据库中的AI交易员配置:")
+	fmt.Println("🤖 AI Trader Configurations in Database:")
 	if len(traders) == 0 {
-		fmt.Println("  • 暂无配置的交易员，请通过Web界面创建")
+		fmt.Println("  • No configured traders, please create via Web interface")
 	} else {
 		for _, trader := range traders {
-			status := "停止"
+			status := "Stopped"
 			if trader.IsRunning {
-				status = "运行中"
+				status = "Running"
 			}
-			fmt.Printf("  • %s (%s + %s) - 初始资金: %.0f USDT [%s]\n",
+			fmt.Printf("  • %s (%s + %s) - Initial Balance: %.0f USDT [%s]\n",
 				trader.Name, strings.ToUpper(trader.AIModelID), strings.ToUpper(trader.ExchangeID),
 				trader.InitialBalance, status)
 		}
 	}
 
 	fmt.Println()
-	fmt.Println("🤖 AI全权决策模式:")
-	fmt.Printf("  • AI将自主决定每笔交易的杠杆倍数（山寨币最高5倍，BTC/ETH最高5倍）\n")
-	fmt.Println("  • AI将自主决定每笔交易的仓位大小")
-	fmt.Println("  • AI将自主设置止损和止盈价格")
-	fmt.Println("  • AI将基于市场数据、技术指标、账户状态做出全面分析")
+	fmt.Println("🤖 AI Full Decision-Making Mode:")
+	fmt.Printf("   • AI will autonomously decide leverage for each trade (max 5x for altcoins, max 5x for BTC/ETH)\n")
+	fmt.Println("  • AI will autonomously decide position size for each trade")
+	fmt.Println("  • AI will autonomously set stop loss and take profit prices")
+	fmt.Println("  • AI will make comprehensive analysis based on market data, technical indicators, and account status")
 	fmt.Println()
-	fmt.Println("⚠️  风险提示: AI自动交易有风险，建议小额资金测试！")
+	fmt.Println("⚠️  Risk Warning: AI automated trading has risks, recommend testing with small amounts!")
 	fmt.Println()
-	fmt.Println("按 Ctrl+C 停止运行")
+	fmt.Println("Press Ctrl+C to stop")
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
 
-	// 获取API服务器端口
-	apiPort := 8080 // 默认端口
+	// Get API server port
+	apiPort := 8080 // Default port
 	if apiPortStr != "" {
 		if port, err := strconv.Atoi(apiPortStr); err == nil {
 			apiPort = port
 		}
 	}
 
-	// 创建并启动API服务器
+	// Create and start API server
 	apiServer := api.NewServer(traderManager, database, apiPort)
 	go func() {
 		if err := apiServer.Start(); err != nil {
-			log.Printf("❌ API服务器错误: %v", err)
+			log.Printf("❌ API server error: %v", err)
 		}
 	}()
 
-	// 启动流行情数据 - 默认使用所有交易员设置的币种 如果没有设置币种 则优先使用系统默认
+	// Start market data stream - default uses all coins set by traders, if no coins set, prioritize system defaults
 	go market.NewWSMonitor(150).Start(database.GetCustomCoins())
-	//go market.NewWSMonitor(150).Start([]string{}) //这里是一个使用方式 传入空的话 则使用market市场的所有币种
-	// 设置优雅退出
+	//go market.NewWSMonitor(150).Start([]string{}) // This is a usage example, pass empty to use all coins from market
+	// Set graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// TODO: 启动数据库中配置为运行状态的交易员
+	// TODO: Start traders configured as running in database
 	// traderManager.StartAll()
 
-	// 等待退出信号
+	// Wait for shutdown signal
 	<-sigChan
 	fmt.Println()
 	fmt.Println()
-	log.Println("📛 收到退出信号，正在停止所有trader...")
+	log.Println("📛 Received shutdown signal, stopping all traders...")
 	traderManager.StopAll()
 
 	fmt.Println()
-	fmt.Println("👋 感谢使用AI交易系统！")
+	fmt.Println("👋 Thank you for using the AI Trading System!")
 }
