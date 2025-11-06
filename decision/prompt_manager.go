@@ -9,102 +9,102 @@ import (
 	"sync"
 )
 
-// PromptTemplate 系统提示词模板
+// PromptTemplate represents a system prompt template
 type PromptTemplate struct {
-	Name    string // 模板名称（文件名，不含扩展名）
-	Content string // 模板内容
+	Name    string // Template name (filename without extension)
+	Content string // Template content
 }
 
-// PromptManager 提示词管理器
+// PromptManager manages prompt templates
 type PromptManager struct {
 	templates map[string]*PromptTemplate
 	mu        sync.RWMutex
 }
 
 var (
-	// globalPromptManager 全局提示词管理器
+	// globalPromptManager is the global prompt manager
 	globalPromptManager *PromptManager
-	// promptsDir 提示词文件夹路径
+	// promptsDir is the prompts directory path
 	promptsDir = "prompts"
 )
 
-// init 包初始化时加载所有提示词模板
+// init loads all prompt templates on package initialization
 func init() {
 	globalPromptManager = NewPromptManager()
 	if err := globalPromptManager.LoadTemplates(promptsDir); err != nil {
-		log.Printf("⚠️  加载提示词模板失败: %v", err)
+		log.Printf("⚠️  Failed to load prompt templates: %v", err)
 	} else {
-		log.Printf("✓ 已加载 %d 个系统提示词模板", len(globalPromptManager.templates))
+		log.Printf("✓ Loaded %d system prompt templates", len(globalPromptManager.templates))
 	}
 }
 
-// NewPromptManager 创建提示词管理器
+// NewPromptManager creates a new prompt manager
 func NewPromptManager() *PromptManager {
 	return &PromptManager{
 		templates: make(map[string]*PromptTemplate),
 	}
 }
 
-// LoadTemplates 从指定目录加载所有提示词模板
+// LoadTemplates loads all prompt templates from the specified directory
 func (pm *PromptManager) LoadTemplates(dir string) error {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 
-	// 检查目录是否存在
+	// Check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return fmt.Errorf("提示词目录不存在: %s", dir)
+		return fmt.Errorf("prompts directory does not exist: %s", dir)
 	}
 
-	// 扫描目录中的所有 .txt 文件
+	// Scan all .txt files in the directory
 	files, err := filepath.Glob(filepath.Join(dir, "*.txt"))
 	if err != nil {
-		return fmt.Errorf("扫描提示词目录失败: %w", err)
+		return fmt.Errorf("failed to scan prompts directory: %w", err)
 	}
 
 	if len(files) == 0 {
-		log.Printf("⚠️  提示词目录 %s 中没有找到 .txt 文件", dir)
+		log.Printf("⚠️  No .txt files found in prompts directory %s", dir)
 		return nil
 	}
 
-	// 加载每个模板文件
+	// Load each template file
 	for _, file := range files {
-		// 读取文件内容
+		// Read file content
 		content, err := os.ReadFile(file)
 		if err != nil {
-			log.Printf("⚠️  读取提示词文件失败 %s: %v", file, err)
+			log.Printf("⚠️  Failed to read prompt file %s: %v", file, err)
 			continue
 		}
 
-		// 提取文件名（不含扩展名）作为模板名称
+		// Extract filename (without extension) as template name
 		fileName := filepath.Base(file)
 		templateName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
 
-		// 存储模板
+		// Store template
 		pm.templates[templateName] = &PromptTemplate{
 			Name:    templateName,
 			Content: string(content),
 		}
 
-		log.Printf("  📄 加载提示词模板: %s (%s)", templateName, fileName)
+		log.Printf("  📄 Loaded prompt template: %s (%s)", templateName, fileName)
 	}
 
 	return nil
 }
 
-// GetTemplate 获取指定名称的提示词模板
+// GetTemplate retrieves the prompt template with the specified name
 func (pm *PromptManager) GetTemplate(name string) (*PromptTemplate, error) {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
 
 	template, exists := pm.templates[name]
 	if !exists {
-		return nil, fmt.Errorf("提示词模板不存在: %s", name)
+		return nil, fmt.Errorf("prompt template does not exist: %s", name)
 	}
 
 	return template, nil
 }
 
-// GetAllTemplateNames 获取所有模板名称列表
+// GetAllTemplateNames returns a list of all template names
 func (pm *PromptManager) GetAllTemplateNames() []string {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
@@ -117,7 +117,7 @@ func (pm *PromptManager) GetAllTemplateNames() []string {
 	return names
 }
 
-// GetAllTemplates 获取所有模板
+// GetAllTemplates returns all templates
 func (pm *PromptManager) GetAllTemplates() []*PromptTemplate {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
@@ -130,7 +130,7 @@ func (pm *PromptManager) GetAllTemplates() []*PromptTemplate {
 	return templates
 }
 
-// ReloadTemplates 重新加载所有模板
+// ReloadTemplates reloads all templates
 func (pm *PromptManager) ReloadTemplates(dir string) error {
 	pm.mu.Lock()
 	pm.templates = make(map[string]*PromptTemplate)
@@ -139,24 +139,24 @@ func (pm *PromptManager) ReloadTemplates(dir string) error {
 	return pm.LoadTemplates(dir)
 }
 
-// === 全局函数（供外部调用）===
+// === Global functions (for external use) ===
 
-// GetPromptTemplate 获取指定名称的提示词模板（全局函数）
+// GetPromptTemplate retrieves the prompt template with the specified name (global function)
 func GetPromptTemplate(name string) (*PromptTemplate, error) {
 	return globalPromptManager.GetTemplate(name)
 }
 
-// GetAllPromptTemplateNames 获取所有模板名称（全局函数）
+// GetAllPromptTemplateNames returns a list of all template names (global function)
 func GetAllPromptTemplateNames() []string {
 	return globalPromptManager.GetAllTemplateNames()
 }
 
-// GetAllPromptTemplates 获取所有模板（全局函数）
+// GetAllPromptTemplates returns all templates (global function)
 func GetAllPromptTemplates() []*PromptTemplate {
 	return globalPromptManager.GetAllTemplates()
 }
 
-// ReloadPromptTemplates 重新加载所有模板（全局函数）
+// ReloadPromptTemplates reloads all templates (global function)
 func ReloadPromptTemplates() error {
 	return globalPromptManager.ReloadTemplates(promptsDir)
 }
