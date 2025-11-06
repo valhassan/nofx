@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# NoFX Trading Bot - PM2 管理脚本
-# 用法: ./pm2.sh [start|stop|restart|status|logs|build]
+# NoFX Trading Bot - PM2 Management Script
+# Usage: ./pm2.sh [start|stop|restart|status|logs|build]
 
 set -e
 
-# 自动获取脚本所在目录（支持符号链接）
+# Automatically get script directory (supports symlinks)
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-# 颜色输出
+# Color output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,7 +18,7 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# 函数：打印带颜色的消息
+# Function: Print colored messages
 print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
@@ -42,180 +42,180 @@ print_header() {
     echo ""
 }
 
-# 函数：检查 PM2 是否安装
+# Function: Check if PM2 is installed
 check_pm2() {
     if ! command -v pm2 &> /dev/null; then
-        print_error "PM2 未安装，请先安装: npm install -g pm2"
+        print_error "PM2 is not installed, please install first: npm install -g pm2"
         exit 1
     fi
 }
 
-# 函数：确保日志目录存在
+# Function: Ensure log directories exist
 ensure_log_dirs() {
     mkdir -p "$PROJECT_ROOT/logs"
     mkdir -p "$PROJECT_ROOT/web/logs"
-    print_info "日志目录已创建"
+    print_info "Log directories created"
 }
 
-# 函数：编译后端
+# Function: Build backend
 build_backend() {
-    print_info "正在编译后端..."
+    print_info "Building backend..."
     go build -o nofx
     if [ $? -eq 0 ]; then
-        print_success "后端编译完成"
+        print_success "Backend build completed"
     else
-        print_error "后端编译失败"
+        print_error "Backend build failed"
         exit 1
     fi
 }
 
-# 函数：构建前端（生产环境）
+# Function: Build frontend (production)
 build_frontend() {
-    print_info "正在构建前端..."
+    print_info "Building frontend..."
     cd web
     npm run build
     if [ $? -eq 0 ]; then
-        print_success "前端构建完成"
+        print_success "Frontend build completed"
         cd ..
     else
-        print_error "前端构建失败"
+        print_error "Frontend build failed"
         exit 1
     fi
 }
 
-# 函数：启动服务
+# Function: Start services
 start_services() {
     print_header
     ensure_log_dirs
 
-    # 检查后端二进制文件是否存在
+    # Check if backend binary exists
     if [ ! -f "./nofx" ]; then
-        print_warning "后端二进制文件不存在，开始编译..."
+        print_warning "Backend binary does not exist, starting build..."
         build_backend
     fi
 
-    print_info "正在启动服务..."
+    print_info "Starting services..."
     pm2 start pm2.config.js
 
     sleep 2
     pm2 status
 
     echo ""
-    print_success "服务启动完成！"
+    print_success "Services started!"
     echo ""
-    echo -e "${CYAN}📊 访问地址:${NC}"
-    echo -e "  ${GREEN}前端:${NC} http://localhost:3000"
-    echo -e "  ${GREEN}后端 API:${NC} http://localhost:8080"
+    echo -e "${CYAN}📊 Access addresses:${NC}"
+    echo -e "  ${GREEN}Frontend:${NC} http://localhost:3000"
+    echo -e "  ${GREEN}Backend API:${NC} http://localhost:8080"
     echo ""
-    echo -e "${CYAN}📝 查看日志:${NC}"
-    echo -e "  ${GREEN}实时日志:${NC} ./pm2.sh logs"
-    echo -e "  ${GREEN}后端日志:${NC} ./pm2.sh logs backend"
-    echo -e "  ${GREEN}前端日志:${NC} ./pm2.sh logs frontend"
+    echo -e "${CYAN}📝 View logs:${NC}"
+    echo -e "  ${GREEN}Real-time logs:${NC} ./pm2.sh logs"
+    echo -e "  ${GREEN}Backend logs:${NC} ./pm2.sh logs backend"
+    echo -e "  ${GREEN}Frontend logs:${NC} ./pm2.sh logs frontend"
     echo ""
 }
 
-# 函数：停止服务
+# Function: Stop services
 stop_services() {
     print_header
-    print_info "正在停止服务..."
+    print_info "Stopping services..."
     pm2 stop pm2.config.js
-    print_success "服务已停止"
+    print_success "Services stopped"
 }
 
-# 函数：重启服务
+# Function: Restart services
 restart_services() {
     print_header
-    print_info "正在重启服务..."
+    print_info "Restarting services..."
     pm2 restart pm2.config.js
     sleep 2
     pm2 status
-    print_success "服务已重启"
+    print_success "Services restarted"
 }
 
-# 函数：删除服务
+# Function: Delete services
 delete_services() {
     print_header
-    print_warning "正在删除 PM2 服务..."
+    print_warning "Deleting PM2 services..."
     pm2 delete pm2.config.js || true
-    print_success "PM2 服务已删除"
+    print_success "PM2 services deleted"
 }
 
-# 函数：查看状态
+# Function: Show status
 show_status() {
     print_header
     pm2 status
     echo ""
-    print_info "详细信息:"
+    print_info "Detailed information:"
     pm2 info nofx-backend
     echo ""
     pm2 info nofx-frontend
 }
 
-# 函数：查看日志
+# Function: Show logs
 show_logs() {
     if [ -z "$2" ]; then
-        # 显示所有日志
+        # Show all logs
         pm2 logs
     elif [ "$2" = "backend" ]; then
         pm2 logs nofx-backend
     elif [ "$2" = "frontend" ]; then
         pm2 logs nofx-frontend
     else
-        print_error "未知的日志类型: $2"
-        print_info "用法: ./pm2.sh logs [backend|frontend]"
+        print_error "Unknown log type: $2"
+        print_info "Usage: ./pm2.sh logs [backend|frontend]"
         exit 1
     fi
 }
 
-# 函数：监控
+# Function: Monitor
 show_monitor() {
     print_header
-    print_info "启动 PM2 监控面板..."
+    print_info "Starting PM2 monitoring panel..."
     pm2 monit
 }
 
-# 函数：重新编译并重启
+# Function: Rebuild and restart
 rebuild_and_restart() {
     print_header
-    print_info "正在重新编译后端..."
+    print_info "Rebuilding backend..."
     build_backend
 
-    print_info "正在重启后端服务..."
+    print_info "Restarting backend service..."
     pm2 restart nofx-backend
 
     sleep 2
     pm2 status
-    print_success "后端已重新编译并重启"
+    print_success "Backend rebuilt and restarted"
 }
 
-# 函数：显示帮助
+# Function: Show help
 show_help() {
     print_header
-    echo -e "${CYAN}使用方法:${NC}"
+    echo -e "${CYAN}Usage:${NC}"
     echo "  ./pm2.sh [command]"
     echo ""
-    echo -e "${CYAN}可用命令:${NC}"
-    echo -e "  ${GREEN}start${NC}       - 启动前后端服务"
-    echo -e "  ${GREEN}stop${NC}        - 停止所有服务"
-    echo -e "  ${GREEN}restart${NC}     - 重启所有服务"
-    echo -e "  ${GREEN}status${NC}      - 查看服务状态"
-    echo -e "  ${GREEN}logs${NC}        - 查看所有日志 (Ctrl+C 退出)"
-    echo -e "  ${GREEN}logs backend${NC}  - 查看后端日志"
-    echo -e "  ${GREEN}logs frontend${NC} - 查看前端日志"
-    echo -e "  ${GREEN}monitor${NC}     - 打开 PM2 监控面板"
-    echo -e "  ${GREEN}build${NC}       - 编译后端"
-    echo -e "  ${GREEN}rebuild${NC}     - 重新编译后端并重启"
-    echo -e "  ${GREEN}delete${NC}      - 删除 PM2 服务"
-    echo -e "  ${GREEN}help${NC}        - 显示此帮助信息"
+    echo -e "${CYAN}Available commands:${NC}"
+    echo -e "  ${GREEN}start${NC}       - Start frontend and backend services"
+    echo -e "  ${GREEN}stop${NC}        - Stop all services"
+    echo -e "  ${GREEN}restart${NC}     - Restart all services"
+    echo -e "  ${GREEN}status${NC}      - View service status"
+    echo -e "  ${GREEN}logs${NC}        - View all logs (Ctrl+C to exit)"
+    echo -e "  ${GREEN}logs backend${NC}  - View backend logs"
+    echo -e "  ${GREEN}logs frontend${NC} - View frontend logs"
+    echo -e "  ${GREEN}monitor${NC}     - Open PM2 monitoring panel"
+    echo -e "  ${GREEN}build${NC}       - Build backend"
+    echo -e "  ${GREEN}rebuild${NC}     - Rebuild backend and restart"
+    echo -e "  ${GREEN}delete${NC}      - Delete PM2 services"
+    echo -e "  ${GREEN}help${NC}        - Show this help message"
     echo ""
-    echo -e "${CYAN}示例:${NC}"
-    echo "  ./pm2.sh start          # 启动服务"
-    echo "  ./pm2.sh logs backend   # 查看后端日志"
-    echo "  ./pm2.sh rebuild        # 重新编译后端并重启"
+    echo -e "${CYAN}Examples:${NC}"
+    echo "  ./pm2.sh start          # Start services"
+    echo "  ./pm2.sh logs backend   # View backend logs"
+    echo "  ./pm2.sh rebuild        # Rebuild backend and restart"
     echo ""
 }
 
-# 主逻辑
+# Main logic
 check_pm2
 
 case "${1:-help}" in
@@ -250,7 +250,7 @@ case "${1:-help}" in
         show_help
         ;;
     *)
-        print_error "未知命令: $1"
+        print_error "Unknown command: $1"
         echo ""
         show_help
         exit 1
