@@ -13,43 +13,43 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// JWTSecret JWT密钥，将从配置中动态设置
+// JWTSecret JWT secret key, will be dynamically set from configuration
 var JWTSecret []byte
 
-// AdminMode 管理员模式标志
+// AdminMode admin mode flag
 var AdminMode bool = false
 
-// adminPasswordHash 管理员密码哈希（仅内存）
+// adminPasswordHash admin password hash (memory only)
 var adminPasswordHash string
 
-// tokenBlacklist 用于登出后的token黑名单（仅内存，按过期时间清理）
+// tokenBlacklist token blacklist for logout (memory only, cleaned by expiration time)
 var tokenBlacklist = struct {
 	sync.RWMutex
 	items map[string]time.Time
 }{items: make(map[string]time.Time)}
 
-// maxBlacklistEntries 黑名单最大容量阈值
+// maxBlacklistEntries maximum capacity threshold for blacklist
 const maxBlacklistEntries = 100_000
 
-// OTPIssuer OTP发行者名称
+// OTPIssuer OTP issuer name
 const OTPIssuer = "nofxAI"
 
-// SetJWTSecret 设置JWT密钥
+// SetJWTSecret sets JWT secret key
 func SetJWTSecret(secret string) {
 	JWTSecret = []byte(secret)
 }
 
-// SetAdminMode 设置管理员模式
+// SetAdminMode sets admin mode
 func SetAdminMode(enabled bool) {
 	AdminMode = enabled
 }
 
-// IsAdminMode 检查是否为管理员模式
+// IsAdminMode checks if admin mode is enabled
 func IsAdminMode() bool {
 	return AdminMode
 }
 
-// SetAdminPasswordFromPlain 通过明文设置管理员密码（会使用bcrypt哈希，成本12）
+// SetAdminPasswordFromPlain sets admin password from plaintext (will use bcrypt hash, cost 12)
 func SetAdminPasswordFromPlain(plain string) error {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(plain), 12)
 	if err != nil {
@@ -59,7 +59,7 @@ func SetAdminPasswordFromPlain(plain string) error {
 	return nil
 }
 
-// CheckAdminPassword 校验管理员密码
+// CheckAdminPassword validates admin password
 func CheckAdminPassword(plain string) bool {
 	if adminPasswordHash == "" {
 		return false
@@ -67,13 +67,13 @@ func CheckAdminPassword(plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(adminPasswordHash), []byte(plain)) == nil
 }
 
-// BlacklistToken 将token加入黑名单直到过期
+// BlacklistToken adds token to blacklist until expiration
 func BlacklistToken(token string, exp time.Time) {
 	tokenBlacklist.Lock()
 	defer tokenBlacklist.Unlock()
 	tokenBlacklist.items[token] = exp
 
-	// 如果超过容量阈值，则进行一次过期清理；若仍超限，记录警告日志
+	// If exceeds capacity threshold, perform expiration cleanup once; if still exceeds limit, log warning
 	if len(tokenBlacklist.items) > maxBlacklistEntries {
 		now := time.Now()
 		for t, e := range tokenBlacklist.items {
@@ -88,7 +88,7 @@ func BlacklistToken(token string, exp time.Time) {
 	}
 }
 
-// IsTokenBlacklisted 检查token是否在黑名单中（过期自动清理）
+// IsTokenBlacklisted checks if token is in blacklist (expired tokens automatically cleaned)
 func IsTokenBlacklisted(token string) bool {
 	tokenBlacklist.Lock()
 	defer tokenBlacklist.Unlock()
@@ -102,26 +102,26 @@ func IsTokenBlacklisted(token string) bool {
 	return false
 }
 
-// Claims JWT声明
+// Claims JWT claims
 type Claims struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
-// HashPassword 哈希密码
+// HashPassword hashes password
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
-// CheckPassword 验证密码
+// CheckPassword verifies password
 func CheckPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
-// GenerateOTPSecret 生成OTP密钥
+// GenerateOTPSecret generates OTP secret
 func GenerateOTPSecret() (string, error) {
 	secret := make([]byte, 20)
 	_, err := rand.Read(secret)
@@ -140,18 +140,18 @@ func GenerateOTPSecret() (string, error) {
 	return key.Secret(), nil
 }
 
-// VerifyOTP 验证OTP码
+// VerifyOTP verifies OTP code
 func VerifyOTP(secret, code string) bool {
 	return totp.Validate(code, secret)
 }
 
-// GenerateJWT 生成JWT token
+// GenerateJWT generates JWT token
 func GenerateJWT(userID, email string) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // 24小时过期
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // 24 hours expiration
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "nofxAI",
@@ -162,11 +162,11 @@ func GenerateJWT(userID, email string) (string, error) {
 	return token.SignedString(JWTSecret)
 }
 
-// ValidateJWT 验证JWT token
+// ValidateJWT validates JWT token
 func ValidateJWT(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("意外的签名方法: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return JWTSecret, nil
 	})
@@ -179,10 +179,10 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 
-	return nil, fmt.Errorf("无效的token")
+	return nil, fmt.Errorf("invalid token")
 }
 
-// GetOTPQRCodeURL 获取OTP二维码URL
+// GetOTPQRCodeURL gets OTP QR code URL
 func GetOTPQRCodeURL(secret, email string) string {
 	return fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", OTPIssuer, email, secret, OTPIssuer)
 }
