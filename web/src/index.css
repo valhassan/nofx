@@ -5,7 +5,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 强制显示滚动条以确保所有页面布局一致 */
+/* Force scrollbar display to ensure consistent page layout */
 html {
   overflow-y: scroll;
 }
