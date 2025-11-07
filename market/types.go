@@ -2,12 +2,12 @@ package market
 
 import "time"
 
-// Data 市场数据结构
+// Data market data structure
 type Data struct {
 	Symbol            string
 	CurrentPrice      float64
-	PriceChange1h     float64 // 1小时价格变化百分比
-	PriceChange4h     float64 // 4小时价格变化百分比
+	PriceChange1h     float64 // 1-hour price change percentage
+	PriceChange4h     float64 // 4-hour price change percentage
 	CurrentEMA20      float64
 	CurrentMACD       float64
 	CurrentRSI7       float64
@@ -17,13 +17,13 @@ type Data struct {
 	LongerTermContext *LongerTermData
 }
 
-// OIData Open Interest数据
+// OIData Open Interest data
 type OIData struct {
 	Latest  float64
 	Average float64
 }
 
-// IntradayData 日内数据(3分钟间隔)
+// IntradayData intraday data (3-minute intervals)
 type IntradayData struct {
 	MidPrices   []float64
 	EMA20Values []float64
@@ -32,7 +32,7 @@ type IntradayData struct {
 	RSI14Values []float64
 }
 
-// LongerTermData 长期数据(4小时时间框架)
+// LongerTermData long-term data (4-hour timeframe)
 type LongerTermData struct {
 	EMA20         float64
 	EMA50         float64
@@ -44,7 +44,7 @@ type LongerTermData struct {
 	RSI14Values   []float64
 }
 
-// Binance API 响应结构
+// Binance API response structures
 type ExchangeInfo struct {
 	Symbols []SymbolInfo `json:"symbols"`
 }
@@ -88,7 +88,7 @@ type Ticker24hr struct {
 	QuoteVolume        string `json:"quoteVolume"`
 }
 
-// 特征数据结构
+// Feature data structure
 type SymbolFeatures struct {
 	Symbol           string    `json:"symbol"`
 	Timestamp        time.Time `json:"timestamp"`
@@ -109,7 +109,7 @@ type SymbolFeatures struct {
 	PositionInRange  float64   `json:"position_in_range"`
 }
 
-// 警报数据结构
+// Alert data structure
 type Alert struct {
 	Type      string    `json:"type"`
 	Symbol    string    `json:"symbol"`
@@ -133,10 +133,10 @@ type AlertThresholds struct {
 	RSIOversold      float64 `json:"rsi_oversold"`
 }
 type CleanupConfig struct {
-	InactiveTimeout   time.Duration `json:"inactive_timeout"`    // 不活跃超时时间
-	MinScoreThreshold float64       `json:"min_score_threshold"` // 最低评分阈值
-	NoAlertTimeout    time.Duration `json:"no_alert_timeout"`    // 无警报超时时间
-	CheckInterval     time.Duration `json:"check_interval"`      // 检查间隔
+	InactiveTimeout   time.Duration `json:"inactive_timeout"`    // Inactive timeout duration
+	MinScoreThreshold float64       `json:"min_score_threshold"` // Minimum score threshold
+	NoAlertTimeout    time.Duration `json:"no_alert_timeout"`    // No alert timeout duration
+	CheckInterval     time.Duration `json:"check_interval"`      // Check interval
 }
 
 var config = Config{
