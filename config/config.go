@@ -7,35 +7,35 @@ import (
 	"time"
 )
 
-// TraderConfig 单个trader的配置
+// TraderConfig configuration for a single trader
 type TraderConfig struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
-	Enabled bool   `json:"enabled"`  // 是否启用该trader
+	Enabled bool   `json:"enabled"`  // Whether to enable this trader
 	AIModel string `json:"ai_model"` // "qwen" or "deepseek"
 
-	// 交易平台选择（二选一）
+	// Exchange platform selection (choose one)
 	Exchange string `json:"exchange"` // "binance" or "hyperliquid"
 
-	// 币安配置
+	// Binance configuration
 	BinanceAPIKey    string `json:"binance_api_key,omitempty"`
 	BinanceSecretKey string `json:"binance_secret_key,omitempty"`
 
-	// Hyperliquid配置
+	// Hyperliquid configuration
 	HyperliquidPrivateKey string `json:"hyperliquid_private_key,omitempty"`
 	HyperliquidWalletAddr string `json:"hyperliquid_wallet_addr,omitempty"`
 	HyperliquidTestnet    bool   `json:"hyperliquid_testnet,omitempty"`
 
-	// Aster配置
-	AsterUser       string `json:"aster_user,omitempty"`        // Aster主钱包地址
-	AsterSigner     string `json:"aster_signer,omitempty"`      // Aster API钱包地址
-	AsterPrivateKey string `json:"aster_private_key,omitempty"` // Aster API钱包私钥
+	// Aster configuration
+	AsterUser       string `json:"aster_user,omitempty"`        // Aster main wallet address
+	AsterSigner     string `json:"aster_signer,omitempty"`      // Aster API wallet address
+	AsterPrivateKey string `json:"aster_private_key,omitempty"` // Aster API wallet private key
 
-	// AI配置
+	// AI configuration
 	QwenKey     string `json:"qwen_key,omitempty"`
 	DeepSeekKey string `json:"deepseek_key,omitempty"`
 
-	// 自定义AI API配置（支持任何OpenAI格式的API）
+	// Custom AI API configuration (supports any OpenAI-compatible API)
 	CustomAPIURL    string `json:"custom_api_url,omitempty"`
 	CustomAPIKey    string `json:"custom_api_key,omitempty"`
 	CustomModelName string `json:"custom_model_name,omitempty"`
@@ -44,57 +44,57 @@ type TraderConfig struct {
 	ScanIntervalMinutes int     `json:"scan_interval_minutes"`
 }
 
-// LeverageConfig 杠杆配置
+// LeverageConfig leverage configuration
 type LeverageConfig struct {
-	BTCETHLeverage  int `json:"btc_eth_leverage"` // BTC和ETH的杠杆倍数（主账户建议5-50，子账户≤5）
-	AltcoinLeverage int `json:"altcoin_leverage"` // 山寨币的杠杆倍数（主账户建议5-20，子账户≤5）
+	BTCETHLeverage  int `json:"btc_eth_leverage"` // Leverage multiplier for BTC and ETH (main account: 5-50 recommended, sub-account: ≤5)
+	AltcoinLeverage int `json:"altcoin_leverage"` // Leverage multiplier for altcoins (main account: 5-20 recommended, sub-account: ≤5)
 }
 
-// LogConfig 日志配置
+// LogConfig log configuration
 type LogConfig struct {
-	Level    string          `json:"level"`    // 日志级别: debug, info, warn, error (默认: info)
-	Telegram *TelegramConfig `json:"telegram"` // Telegram推送配置（可选）
+	Level    string          `json:"level"`    // Log level: debug, info, warn, error (default: info)
+	Telegram *TelegramConfig `json:"telegram"` // Telegram push configuration (optional)
 }
 
-// TelegramConfig Telegram推送配置（简化版，只保留必需字段）
+// TelegramConfig Telegram push configuration (simplified, only essential fields)
 type TelegramConfig struct {
-	Enabled  bool   `json:"enabled"`   // 是否启用（默认: false）
+	Enabled  bool   `json:"enabled"`   // Whether to enable (default: false)
 	BotToken string `json:"bot_token"` // Bot Token
 	ChatID   int64  `json:"chat_id"`   // Chat ID
-	MinLevel string `json:"min_level"` // 最低日志级别，该级别及以上的日志会推送到Telegram（可选，默认: error）
+	MinLevel string `json:"min_level"` // Minimum log level, logs at this level and above will be pushed to Telegram (optional, default: error)
 }
 
-// Config 总配置
+// Config main configuration
 type Config struct {
 	Traders            []TraderConfig `json:"traders"`
-	UseDefaultCoins    bool           `json:"use_default_coins"` // 是否使用默认主流币种列表
-	DefaultCoins       []string       `json:"default_coins"`     // 默认主流币种池
+	UseDefaultCoins    bool           `json:"use_default_coins"` // Whether to use default mainstream coin list
+	DefaultCoins       []string       `json:"default_coins"`     // Default mainstream coin pool
 	APIServerPort      int            `json:"api_server_port"`
 	MaxDailyLoss       float64        `json:"max_daily_loss"`
 	MaxDrawdown        float64        `json:"max_drawdown"`
 	StopTradingMinutes int            `json:"stop_trading_minutes"`
-	Leverage           LeverageConfig `json:"leverage"` // 杠杆配置
-	Log                *LogConfig     `json:"log"`      // 日志配置（可选）
+	Leverage           LeverageConfig `json:"leverage"` // Leverage configuration
+	Log                *LogConfig     `json:"log"`      // Log configuration (optional)
 }
 
-// LoadConfig 从文件加载配置
+// LoadConfig loads configuration from file
 func LoadConfig(filename string) (*Config, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("读取配置文件失败: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config Config
 	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("解析配置文件失败: %w", err)
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
-	// 设置默认值：确保使用默认币种列表
+	// Set default values: ensure using default coin list
 	if !config.UseDefaultCoins {
 		config.UseDefaultCoins = true
 	}
 
-	// 设置默认币种池
+	// Set default coin pool
 	if len(config.DefaultCoins) == 0 {
 		config.DefaultCoins = []string{
 			"BTCUSDT",
@@ -108,107 +108,107 @@ func LoadConfig(filename string) (*Config, error) {
 		}
 	}
 
-	// 验证配置
+	// Validate configuration
 	if err := config.Validate(); err != nil {
-		return nil, fmt.Errorf("配置验证失败: %w", err)
+		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
 	return &config, nil
 }
 
-// Validate 验证配置有效性
+// Validate validates configuration validity
 func (c *Config) Validate() error {
 	if len(c.Traders) == 0 {
-		return fmt.Errorf("至少需要配置一个trader")
+		return fmt.Errorf("at least one trader must be configured")
 	}
 
 	traderIDs := make(map[string]bool)
 	for i, trader := range c.Traders {
 		if trader.ID == "" {
-			return fmt.Errorf("trader[%d]: ID不能为空", i)
+			return fmt.Errorf("trader[%d]: ID cannot be empty", i)
 		}
 		if traderIDs[trader.ID] {
-			return fmt.Errorf("trader[%d]: ID '%s' 重复", i, trader.ID)
+			return fmt.Errorf("trader[%d]: duplicate ID '%s'", i, trader.ID)
 		}
 		traderIDs[trader.ID] = true
 
 		if trader.Name == "" {
-			return fmt.Errorf("trader[%d]: Name不能为空", i)
+			return fmt.Errorf("trader[%d]: Name cannot be empty", i)
 		}
 		if trader.AIModel != "qwen" && trader.AIModel != "deepseek" && trader.AIModel != "custom" {
-			return fmt.Errorf("trader[%d]: ai_model必须是 'qwen', 'deepseek' 或 'custom'", i)
+			return fmt.Errorf("trader[%d]: ai_model must be 'qwen', 'deepseek' or 'custom'", i)
 		}
 
-		// 验证交易平台配置
+		// Validate exchange platform configuration
 		if trader.Exchange == "" {
-			trader.Exchange = "binance" // 默认使用币安
+			trader.Exchange = "binance" // Default to Binance
 		}
 		if trader.Exchange != "binance" && trader.Exchange != "hyperliquid" && trader.Exchange != "aster" {
-			return fmt.Errorf("trader[%d]: exchange必须是 'binance', 'hyperliquid' 或 'aster'", i)
+			return fmt.Errorf("trader[%d]: exchange must be 'binance', 'hyperliquid' or 'aster'", i)
 		}
 
-		// 根据平台验证对应的密钥
+		// Validate corresponding keys based on platform
 		if trader.Exchange == "binance" {
 			if trader.BinanceAPIKey == "" || trader.BinanceSecretKey == "" {
-				return fmt.Errorf("trader[%d]: 使用币安时必须配置binance_api_key和binance_secret_key", i)
+				return fmt.Errorf("trader[%d]: binance_api_key and binance_secret_key must be configured when using Binance", i)
 			}
 		} else if trader.Exchange == "hyperliquid" {
 			if trader.HyperliquidPrivateKey == "" {
-				return fmt.Errorf("trader[%d]: 使用Hyperliquid时必须配置hyperliquid_private_key", i)
+				return fmt.Errorf("trader[%d]: hyperliquid_private_key must be configured when using Hyperliquid", i)
 			}
 		} else if trader.Exchange == "aster" {
 			if trader.AsterUser == "" || trader.AsterSigner == "" || trader.AsterPrivateKey == "" {
-				return fmt.Errorf("trader[%d]: 使用Aster时必须配置aster_user, aster_signer和aster_private_key", i)
+				return fmt.Errorf("trader[%d]: aster_user, aster_signer and aster_private_key must be configured when using Aster", i)
 			}
 		}
 
 		if trader.AIModel == "qwen" && trader.QwenKey == "" {
-			return fmt.Errorf("trader[%d]: 使用Qwen时必须配置qwen_key", i)
+			return fmt.Errorf("trader[%d]: qwen_key must be configured when using Qwen", i)
 		}
 		if trader.AIModel == "deepseek" && trader.DeepSeekKey == "" {
-			return fmt.Errorf("trader[%d]: 使用DeepSeek时必须配置deepseek_key", i)
+			return fmt.Errorf("trader[%d]: deepseek_key must be configured when using DeepSeek", i)
 		}
 		if trader.AIModel == "custom" {
 			if trader.CustomAPIURL == "" {
-				return fmt.Errorf("trader[%d]: 使用自定义API时必须配置custom_api_url", i)
+				return fmt.Errorf("trader[%d]: custom_api_url must be configured when using custom API", i)
 			}
 			if trader.CustomAPIKey == "" {
-				return fmt.Errorf("trader[%d]: 使用自定义API时必须配置custom_api_key", i)
+				return fmt.Errorf("trader[%d]: custom_api_key must be configured when using custom API", i)
 			}
 			if trader.CustomModelName == "" {
-				return fmt.Errorf("trader[%d]: 使用自定义API时必须配置custom_model_name", i)
+				return fmt.Errorf("trader[%d]: custom_model_name must be configured when using custom API", i)
 			}
 		}
 		if trader.InitialBalance <= 0 {
-			return fmt.Errorf("trader[%d]: initial_balance必须大于0", i)
+			return fmt.Errorf("trader[%d]: initial_balance must be greater than 0", i)
 		}
 		if trader.ScanIntervalMinutes <= 0 {
-			trader.ScanIntervalMinutes = 3 // 默认3分钟
+			trader.ScanIntervalMinutes = 3 // Default 3 minutes
 		}
 	}
 
 	if c.APIServerPort <= 0 {
-		c.APIServerPort = 8080 // 默认8080端口
+		c.APIServerPort = 8080 // Default port 8080
 	}
 
-	// 设置杠杆默认值（适配币安子账户限制，最大5倍）
+	// Set leverage default values (adapted for Binance sub-account limits, max 5x)
 	if c.Leverage.BTCETHLeverage <= 0 {
-		c.Leverage.BTCETHLeverage = 5 // 默认5倍（安全值，适配子账户）
+		c.Leverage.BTCETHLeverage = 5 // Default 5x (safe value, adapted for sub-accounts)
 	}
 	if c.Leverage.BTCETHLeverage > 5 {
-		fmt.Printf("⚠️  警告: BTC/ETH杠杆设置为%dx，如果使用子账户可能会失败（子账户限制≤5x）\n", c.Leverage.BTCETHLeverage)
+		fmt.Printf("⚠️  Warning: BTC/ETH leverage set to %dx, may fail if using sub-account (sub-account limit ≤5x)\n", c.Leverage.BTCETHLeverage)
 	}
 	if c.Leverage.AltcoinLeverage <= 0 {
-		c.Leverage.AltcoinLeverage = 5 // 默认5倍（安全值，适配子账户）
+		c.Leverage.AltcoinLeverage = 5 // Default 5x (safe value, adapted for sub-accounts)
 	}
 	if c.Leverage.AltcoinLeverage > 5 {
-		fmt.Printf("⚠️  警告: 山寨币杠杆设置为%dx，如果使用子账户可能会失败（子账户限制≤5x）\n", c.Leverage.AltcoinLeverage)
+		fmt.Printf("⚠️  Warning: Altcoin leverage set to %dx, may fail if using sub-account (sub-account limit ≤5x)\n", c.Leverage.AltcoinLeverage)
 	}
 
 	return nil
 }
 
-// GetScanInterval 获取扫描间隔
+// GetScanInterval gets scan interval
 func (tc *TraderConfig) GetScanInterval() time.Duration {
 	return time.Duration(tc.ScanIntervalMinutes) * time.Minute
 }
