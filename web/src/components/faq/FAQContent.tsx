@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { t, type Language } from '../../i18n/translations'
 import type { FAQCategory } from '../../data/faqData'
-// RoadmapWidget 移除动态嵌入，按需仅展示外部链接
+// RoadmapWidget removed dynamic embedding, only show external links on demand
 
 interface FAQContentProps {
   categories: FAQCategory[]
