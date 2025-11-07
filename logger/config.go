@@ -4,45 +4,45 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Config 日志配置（简化版）
+// Config log configuration (simplified version)
 type Config struct {
-	Level    string          `json:"level"`    // 日志级别: debug, info, warn, error (默认: info)
-	Telegram *TelegramConfig `json:"telegram"` // Telegram推送配置（可选）
+	Level    string          `json:"level"`    // Log level: debug, info, warn, error (default: info)
+	Telegram *TelegramConfig `json:"telegram"` // Telegram push configuration (optional)
 }
 
-// TelegramConfig Telegram推送配置（简化版，高级参数使用默认值）
+// TelegramConfig Telegram push configuration (simplified version, advanced parameters use default values)
 type TelegramConfig struct {
-	Enabled  bool   `json:"enabled"`   // 是否启用（默认: false）
+	Enabled  bool   `json:"enabled"`   // Whether to enable (default: false)
 	BotToken string `json:"bot_token"` // Bot Token
 	ChatID   int64  `json:"chat_id"`   // Chat ID
-	MinLevel string `json:"min_level"` // 最低日志级别，该级别及以上的日志会推送到Telegram（可选，默认: error）
+	MinLevel string `json:"min_level"` // Minimum log level, logs at this level and above will be pushed to Telegram (optional, default: error)
 }
 
-// SetDefaults 设置默认值
+// SetDefaults sets default values
 func (c *Config) SetDefaults() {
 	if c.Level == "" {
 		c.Level = "info"
 	}
 }
 
-// GetLogrusLevels 返回要推送到Telegram的日志级别
-// 根据配置的MinLevel返回该级别及以上的所有日志级别
-// 如果未配置或配置无效，默认返回error, fatal, panic（向后兼容）
+// GetLogrusLevels returns log levels to be pushed to Telegram
+// Returns all log levels at and above the configured MinLevel
+// If not configured or invalid, defaults to error, fatal, panic (backward compatible)
 func (tc *TelegramConfig) GetLogrusLevels() []logrus.Level {
-	// 如果未配置，使用默认值error（向后兼容）
+	// If not configured, use default value error (backward compatible)
 	minLevelStr := tc.MinLevel
 	if minLevelStr == "" {
 		minLevelStr = "error"
 	}
 
-	// 解析配置的日志级别
+	// Parse configured log level
 	minLevel, err := logrus.ParseLevel(minLevelStr)
 	if err != nil {
-		// 如果解析失败，使用默认值error（向后兼容）
+		// If parsing fails, use default value error (backward compatible)
 		minLevel = logrus.ErrorLevel
 	}
 
-	// 定义所有日志级别（从高到低：panic, fatal, error, warn, info, debug）
+	// Define all log levels (from high to low: panic, fatal, error, warn, info, debug)
 	allLevels := []logrus.Level{
 		logrus.PanicLevel,
 		logrus.FatalLevel,
@@ -52,7 +52,7 @@ func (tc *TelegramConfig) GetLogrusLevels() []logrus.Level {
 		logrus.DebugLevel,
 	}
 
-	// 返回所有大于等于minLevel的日志级别
+	// Return all log levels greater than or equal to minLevel
 	var result []logrus.Level
 	for _, level := range allLevels {
 		if level <= minLevel {
