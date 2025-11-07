@@ -84,7 +84,7 @@ export interface Statistics {
   total_close_positions: number
 }
 
-// AI Trading相关类型
+// AI Trading related types
 export interface TraderInfo {
   trader_id: string
   trader_name: string
@@ -114,9 +114,9 @@ export interface Exchange {
   apiKey?: string
   secretKey?: string
   testnet?: boolean
-  // Hyperliquid 特定字段
+  // Hyperliquid specific fields
   hyperliquidWalletAddr?: string
-  // Aster 特定字段
+  // Aster specific fields
   asterUser?: string
   asterSigner?: string
   asterPrivateKey?: string
@@ -157,9 +157,9 @@ export interface UpdateExchangeConfigRequest {
       api_key: string
       secret_key: string
       testnet?: boolean
-      // Hyperliquid 特定字段
+      // Hyperliquid specific fields
       hyperliquid_wallet_addr?: string
-      // Aster 特定字段
+      // Aster specific fields
       aster_user?: string
       aster_signer?: string
       aster_private_key?: string
