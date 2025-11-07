@@ -15,7 +15,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
   const handControls = useAnimation()
   const { stars, daysOld, isLoading } = useGitHubStats('NoFxAiOS', 'nofx')
 
-  // 动画数字 - 仅对 stars 添加动画
+  // Animated numbers - only animate stars
   const animatedStars = useCounterAnimation({
     start: 0,
     end: stars,
@@ -67,7 +67,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
                     t('githubStarsInDays', language)
                   ) : language === 'zh' ? (
                     <>
-                      {daysOld} 天内{' '}
+                      {daysOld} days {' '}
                       <span className="inline-block tabular-nums">
                         {(animatedStars / 1000).toFixed(1)}
                       </span>
