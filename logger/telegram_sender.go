@@ -8,7 +8,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// TelegramSender Telegram消息发送器（异步）
+// TelegramSender Telegram message sender (async)
 type TelegramSender struct {
 	bot           *tgbotapi.BotAPI
 	chatID        int64
@@ -20,49 +20,49 @@ type TelegramSender struct {
 	once          sync.Once
 }
 
-// NewTelegramSender 创建Telegram发送器（使用默认参数）
+// NewTelegramSender creates Telegram sender (using default parameters)
 func NewTelegramSender(botToken string, chatID int64) (*TelegramSender, error) {
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
-		return nil, fmt.Errorf("创建telegram bot失败: %w", err)
+		return nil, fmt.Errorf("failed to create telegram bot: %w", err)
 	}
 
-	// 设置为静默模式（不打印bot信息）
+	// Set to silent mode (don't print bot info)
 	bot.Debug = false
 
 	sender := &TelegramSender{
 		bot:           bot,
 		chatID:        chatID,
-		msgChan:       make(chan string, 20),     // 固定缓冲区大小: 20
-		retryCount:    3,                         // 固定重试次数: 3
-		retryInterval: 3 * time.Second,          // 固定重试间隔: 3秒
+		msgChan:       make(chan string, 20),     // Fixed buffer size: 20
+		retryCount:    3,                         // Fixed retry count: 3
+		retryInterval: 3 * time.Second,          // Fixed retry interval: 3 seconds
 		stopChan:      make(chan struct{}),
 	}
 
-	// 启动异步发送协程
+	// Start async send goroutine
 	sender.Start()
 
 	return sender, nil
 }
 
-// Start 启动异步发送协程
+// Start starts async send goroutine
 func (s *TelegramSender) Start() {
 	s.wg.Add(1)
 	go s.listenAndSend()
 }
 
-// SendAsync 异步发送消息（非阻塞）
+// SendAsync sends message asynchronously (non-blocking)
 func (s *TelegramSender) SendAsync(message string) {
 	select {
 	case s.msgChan <- message:
-		// 成功写入缓冲区
+		// Successfully written to buffer
 	default:
-		// 缓冲区满，丢弃消息（不阻塞主流程）
-		fmt.Printf("[Telegram] 消息缓冲区已满，消息被丢弃\n")
+		// Buffer full, discard message (don't block main flow)
+		fmt.Printf("[Telegram] Message buffer full, message discarded\n")
 	}
 }
 
-// listenAndSend 监听channel并发送消息
+// listenAndSend listens to channel and sends messages
 func (s *TelegramSender) listenAndSend() {
 	defer s.wg.Done()
 
@@ -71,7 +71,7 @@ func (s *TelegramSender) listenAndSend() {
 		case msg := <-s.msgChan:
 			s.sendWithRetry(msg)
 		case <-s.stopChan:
-			// 清空缓冲区后退出
+			// Clear buffer before exiting
 			for len(s.msgChan) > 0 {
 				msg := <-s.msgChan
 				s.sendWithRetry(msg)
@@ -81,28 +81,28 @@ func (s *TelegramSender) listenAndSend() {
 	}
 }
 
-// sendWithRetry 发送消息（带重试）
+// sendWithRetry sends message (with retry)
 func (s *TelegramSender) sendWithRetry(message string) {
 	var err error
 	for i := 0; i < s.retryCount; i++ {
 		err = s.send(message)
 		if err == nil {
-			return // 发送成功
+			return // Send successful
 		}
 
-		// 重试前等待
+		// Wait before retry
 		if i < s.retryCount-1 {
 			time.Sleep(s.retryInterval)
 		}
 	}
 
-	// 所有重试都失败
+	// All retries failed
 	if err != nil {
-		fmt.Printf("[Telegram] 发送消息失败（已重试%d次）: %v\n", s.retryCount, err)
+		fmt.Printf("[Telegram] Failed to send message (retried %d times): %v\n", s.retryCount, err)
 	}
 }
 
-// send 发送单条消息
+// send sends a single message
 func (s *TelegramSender) send(message string) error {
 	msg := tgbotapi.NewMessage(s.chatID, message)
 	msg.ParseMode = tgbotapi.ModeMarkdown
@@ -111,7 +111,7 @@ func (s *TelegramSender) send(message string) error {
 	return err
 }
 
-// Stop 停止发送器（优雅关闭）
+// Stop stops sender (graceful shutdown)
 func (s *TelegramSender) Stop() {
 	s.once.Do(func() {
 		close(s.stopChan)
