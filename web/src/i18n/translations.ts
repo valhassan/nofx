@@ -32,6 +32,7 @@ export const translations = {
     totalPnL: 'Total P&L',
     positions: 'Positions',
     margin: 'Margin',
+    marginRate: 'Margin Rate',
     free: 'Free',
 
     // Positions Table
@@ -473,7 +474,13 @@ export const translations = {
     riskWarningText:
       'Dev branch is unstable, do not use funds you cannot afford to lose. NOFX is non-custodial, no official strategies. Trading involves risks, invest carefully.',
 
-    // Community Section (testimonials are kept as-is since they are quotes)
+    // Community Section
+    testimonial1:
+      'The recently popular AI quantitative trading system NOF1 has been forked and open-sourced on GitHub, which is the NOFX project. Built on large language models like DeepSeek and Qwen, it creates a universal architecture AI trading operating system that completes the closed loop from decision-making to trading to review. GitHub: https://github.com/NoFxAiOS/nofx',
+    testimonial2:
+      'Ran the open-source AI auto-trading from @nofx_ai all night, so interesting! Watching the AI go long and short, making moves. Though I don\'t understand why, it made me 6% profit overnight.',
+    testimonial3:
+      'Open-source NOFX revives the legendary Alpha Arena, an AI-powered crypto futures battleground. Built on DeepSeek/Qwen AI, it trades live on Binance, Hyperliquid, and Aster DEX, featuring multi-AI battles and self-learning bots',
 
     // Footer Section
     futureStandardAI: 'The future standard of AI trading',
@@ -709,6 +716,7 @@ export const translations = {
     totalPnL: '总盈亏',
     positions: '持仓',
     margin: '保证金',
+    marginRate: '保证金率',
     free: '空闲',
 
     // Positions Table
@@ -1114,7 +1122,13 @@ export const translations = {
     riskWarningText:
       'dev 分支不稳定，勿用无法承受损失的资金。NOFX 非托管，无官方策略。交易有风险，投资需谨慎。',
 
-    // Community Section (testimonials are kept as-is since they are quotes)
+    // Community Section
+    testimonial1:
+      '前不久非常火的 AI 量化交易系统 NOF1，在 GitHub 上有人将其复刻并开源，这就是 NOFX 项目。基于 DeepSeek、Qwen 等大语言模型，打造的通用架构 AI 交易操作系统，完成了从决策、到交易、再到复盘的闭环。GitHub: https://github.com/NoFxAiOS/nofx',
+    testimonial2:
+      '跑了一晚上 @nofx_ai 开源的 AI 自动交易，太有意思了，就看 AI 在那一会开空一会开多，一顿操作，虽然看不懂为什么，但是一晚上帮我赚了 6% 收益',
+    testimonial3:
+      'Open-source NOFX revives the legendary Alpha Arena, an AI-powered crypto futures battleground. Built on DeepSeek/Qwen AI, it trades live on Binance, Hyperliquid, and Aster DEX, featuring multi-AI battles and self-learning bots',
 
     // Footer Section
     futureStandardAI: 'AI 交易的未来标准',
