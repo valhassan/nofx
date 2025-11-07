@@ -6,20 +6,20 @@ import { useSystemConfig } from '../hooks/useSystemConfig'
 import { t } from '../i18n/translations'
 
 /**
- * FAQ 页面
+ * FAQ Page
  *
- * 这个页面只是组件的集合，负责：
- * - 组装 HeaderBar 和 FAQLayout
- * - 提供全局状态（语言、用户、系统配置）
- * - 处理页面级别的导航
+ * This page is just a collection of components, responsible for:
+ * - Assembling HeaderBar and FAQLayout
+ * - Providing global state (language, user, system configuration)
+ * - Handling page-level navigation
  *
- * 所有 FAQ 相关的逻辑都在子组件中：
- * - FAQLayout: 整体布局和搜索逻辑
- * - FAQSearchBar: 搜索框
- * - FAQSidebar: 左侧目录
- * - FAQContent: 右侧内容区
+ * All FAQ-related logic is in child components:
+ * - FAQLayout: overall layout and search logic
+ * - FAQSearchBar: search bar
+ * - FAQSidebar: left sidebar
+ * - FAQContent: right content area
  *
- * FAQ 数据配置在 data/faqData.ts
+ * FAQ data configuration is in data/faqData.ts
  */
 export function FAQPage() {
   const { language, setLanguage } = useLanguage()
