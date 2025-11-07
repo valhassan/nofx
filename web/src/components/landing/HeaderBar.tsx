@@ -90,7 +90,7 @@ export default function HeaderBar({
                   <button
                     onClick={() => {
                       console.log(
-                        '实时 button clicked, onPageChange:',
+                        'Live button clicked, onPageChange:',
                         onPageChange
                       )
                       onPageChange?.('competition')
@@ -133,7 +133,7 @@ export default function HeaderBar({
                   <button
                     onClick={() => {
                       console.log(
-                        '配置 button clicked, onPageChange:',
+                        'Config button clicked, onPageChange:',
                         onPageChange
                       )
                       onPageChange?.('traders')
@@ -176,7 +176,7 @@ export default function HeaderBar({
                   <button
                     onClick={() => {
                       console.log(
-                        '看板 button clicked, onPageChange:',
+                        'Dashboard button clicked, onPageChange:',
                         onPageChange
                       )
                       onPageChange?.('trader')
@@ -537,7 +537,7 @@ export default function HeaderBar({
                       }}
                     >
                       <span className="text-base">🇨🇳</span>
-                      <span className="text-sm">中文</span>
+                      <span className="text-sm">Chinese</span>
                     </button>
                     <button
                       onClick={() => {
@@ -601,7 +601,7 @@ export default function HeaderBar({
             <button
               onClick={() => {
                 console.log(
-                  '移动端 实时 button clicked, onPageChange:',
+                  'Mobile Live button clicked, onPageChange:',
                   onPageChange
                 )
                 onPageChange?.('competition')
@@ -661,13 +661,13 @@ export default function HeaderBar({
               {t('realtimeNav', language)}
             </a>
           )}
-          {/* Only show 配置 and 看板 when logged in */}
+          {/* Only show Config and Dashboard when logged in */}
           {isLoggedIn && (
             <>
               <button
                 onClick={() => {
                   console.log(
-                    '移动端 配置 button clicked, onPageChange:',
+                    'Mobile Config button clicked, onPageChange:',
                     onPageChange
                   )
                   onPageChange?.('traders')
@@ -702,7 +702,7 @@ export default function HeaderBar({
               <button
                 onClick={() => {
                   console.log(
-                    '移动端 看板 button clicked, onPageChange:',
+                    'Mobile Dashboard button clicked, onPageChange:',
                     onPageChange
                   )
                   onPageChange?.('trader')
@@ -737,7 +737,7 @@ export default function HeaderBar({
               <button
                 onClick={() => {
                   console.log(
-                    '移动端 FAQ button clicked, onPageChange:',
+                    'Mobile FAQ button clicked, onPageChange:',
                     onPageChange
                   )
                   onPageChange?.('faq')
@@ -829,7 +829,7 @@ export default function HeaderBar({
                 }`}
               >
                 <span className="text-lg">🇨🇳</span>
-                <span className="text-sm">中文</span>
+                <span className="text-sm">Chinese</span>
               </button>
               <button
                 onClick={() => {
