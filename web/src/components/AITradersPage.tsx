@@ -26,7 +26,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 
-// 获取友好的AI模型名称
+// Get friendly AI model display name
 function getModelDisplayName(modelId: string): string {
   switch (modelId.toLowerCase()) {
     case 'deepseek':
@@ -40,7 +40,7 @@ function getModelDisplayName(modelId: string): string {
   }
 }
 
-// 提取下划线后面的名称部分
+// Extract the name part after the underscore
 function getShortName(fullName: string): string {
   const parts = fullName.split('_')
   return parts.length > 1 ? parts[parts.length - 1] : fullName
@@ -79,11 +79,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     { refreshInterval: 5000 }
   )
 
-  // 加载AI模型和交易所配置
+  // Load AI model and exchange configurations
   useEffect(() => {
     const loadConfigs = async () => {
       if (!user || !token) {
-        // 未登录时只加载公开的支持模型和交易所
+        // Only load public supported models and exchanges when not logged in
         try {
           const [supportedModels, supportedExchanges] = await Promise.all([
             api.getSupportedModels(),
@@ -114,7 +114,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         setSupportedModels(supportedModels)
         setSupportedExchanges(supportedExchanges)
 
-        // 加载用户信号源配置
+        // Load user signal source configuration
         try {
           const signalSource = await api.getUserSignalSource()
           setUserSignalSource({
@@ -122,7 +122,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             oiTopUrl: signalSource.oi_top_url || '',
           })
         } catch (error) {
-          console.log('📡 用户信号源配置暂未设置')
+          console.log('📡 User signal source configuration not set')
         }
       } catch (error) {
         console.error('Failed to load configs:', error)
@@ -131,17 +131,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     loadConfigs()
   }, [user, token])
 
-  // 显示所有用户的模型和交易所配置（用于调试）
+  // Display all user's model and exchange configurations (for debugging)
   const configuredModels = allModels || []
   const configuredExchanges = allExchanges || []
 
-  // 只在创建交易员时使用已启用且配置完整的
+  // Only use enabled and fully configured ones when creating traders
   const enabledModels = allModels?.filter((m) => m.enabled && m.apiKey) || []
   const enabledExchanges =
     allExchanges?.filter((e) => {
       if (!e.enabled) return false
 
-      // Aster 交易所需要特殊字段
+      // Aster exchange requires special fields
       if (e.id === 'aster') {
         return (
           e.asterUser &&
@@ -153,12 +153,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         )
       }
 
-      // Hyperliquid 只需要私钥（作为apiKey），钱包地址会自动从私钥生成
+      // Hyperliquid only needs private key (as apiKey), wallet address is automatically generated from private key
       if (e.id === 'hyperliquid') {
         return e.apiKey && e.apiKey.trim() !== ''
       }
 
-      // Binance 等其他交易所需要 apiKey 和 secretKey
+      // Binance and other exchanges require apiKey and secretKey
       return (
         e.apiKey &&
         e.apiKey.trim() !== '' &&
@@ -167,12 +167,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       )
     }) || []
 
-  // 检查模型是否正在被运行中的交易员使用
+  // Check if model is being used by running traders
   const isModelInUse = (modelId: string) => {
     return traders?.some((t) => t.ai_model === modelId && t.is_running) || false
   }
 
-  // 检查交易所是否正在被运行中的交易员使用
+  // Check if exchange is being used by running traders
   const isExchangeInUse = (exchangeId: string) => {
     return (
       traders?.some((t) => t.exchange_id === exchangeId && t.is_running) ||
@@ -318,7 +318,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       const request = {
         models: Object.fromEntries(
           updatedModels.map((model) => [
-            model.provider, // 使用 provider 而不是 id
+            model.provider, // Use provider instead of id
             {
               enabled: model.enabled,
               api_key: model.apiKey || '',
@@ -346,11 +346,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     customModelName?: string
   ) => {
     try {
-      // 创建或更新用户的模型配置
+      // Create or update user's model configuration
       const existingModel = allModels?.find((m) => m.id === modelId)
       let updatedModels
 
-      // 找到要配置的模型（优先从已配置列表，其次从支持列表）
+      // Find the model to configure (prefer from configured list, then from supported list)
       const modelToUpdate =
         existingModel || supportedModels?.find((m) => m.id === modelId)
       if (!modelToUpdate) {
@@ -359,7 +359,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       }
 
       if (existingModel) {
-        // 更新现有配置
+        // Update existing configuration
         updatedModels =
           allModels?.map((m) =>
             m.id === modelId
@@ -373,7 +373,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               : m
           ) || []
       } else {
-        // 添加新配置
+        // Add new configuration
         const newModel = {
           ...modelToUpdate,
           apiKey,
@@ -387,7 +387,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       const request = {
         models: Object.fromEntries(
           updatedModels.map((model) => [
-            model.provider, // 使用 provider 而不是 id
+            model.provider, // Use provider instead of id
             {
               enabled: model.enabled,
               api_key: model.apiKey || '',
@@ -400,7 +400,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
       await api.updateModelConfigs(request)
 
-      // 重新获取用户配置以确保数据同步
+      // Re-fetch user configuration to ensure data synchronization
       const refreshedModels = await api.getModelConfigs()
       setAllModels(refreshedModels)
 
@@ -458,7 +458,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     asterPrivateKey?: string
   ) => {
     try {
-      // 找到要配置的交易所（从supportedExchanges中）
+      // Find the exchange to configure (from supportedExchanges)
       const exchangeToUpdate = supportedExchanges?.find(
         (e) => e.id === exchangeId
       )
@@ -467,12 +467,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         return
       }
 
-      // 创建或更新用户的交易所配置
+      // Create or update user's exchange configuration
       const existingExchange = allExchanges?.find((e) => e.id === exchangeId)
       let updatedExchanges
 
       if (existingExchange) {
-        // 更新现有配置
+        // Update existing configuration
         updatedExchanges =
           allExchanges?.map((e) =>
             e.id === exchangeId
@@ -490,7 +490,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               : e
           ) || []
       } else {
-        // 添加新配置
+        // Add new configuration
         const newExchange = {
           ...exchangeToUpdate,
           apiKey,
@@ -525,7 +525,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
       await api.updateExchangeConfigs(request)
 
-      // 重新获取用户配置以确保数据同步
+      // Re-fetch user configuration to ensure data synchronization
       const refreshedExchanges = await api.getExchangeConfigs()
       setAllExchanges(refreshedExchanges)
 
@@ -659,7 +659,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         </div>
       </div>
 
-      {/* 信号源配置警告 */}
+      {/* Signal source configuration warning */}
       {traders &&
         traders.some((t) => t.use_coin_pool || t.use_oi_top) &&
         !userSignalSource.coinPoolUrl &&
@@ -688,9 +688,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                   <strong>{t('solutions', language)}</strong>
                 </p>
                 <ul className="list-disc list-inside space-y-1 ml-2 mt-1">
-                  <li>点击"📡 {t('signalSource', language)}"按钮配置API地址</li>
-                  <li>或在交易员配置中禁用"使用币种池"和"使用OI Top"</li>
-                  <li>或在交易员配置中设置自定义币种列表</li>
+                  <li>Click the "📡 {t('signalSource', language)}" button to configure API address</li>
+                  <li>Or disable "Use Coin Pool" and "Use OI Top" in trader configuration</li>
+                  <li>Or set a custom coin list in trader configuration</li>
                 </ul>
               </div>
               <button
@@ -1310,12 +1310,12 @@ function ModelConfigModal({
   const [baseUrl, setBaseUrl] = useState('')
   const [modelName, setModelName] = useState('')
 
-  // 获取当前编辑的模型信息 - 编辑时从已配置的模型中查找，新建时从所有支持的模型中查找
+  // Get current editing model info - when editing, find from configured models; when creating new, find from all supported models
   const selectedModel = editingModelId
     ? configuredModels?.find((m) => m.id === selectedModelId)
     : allModels?.find((m) => m.id === selectedModelId)
 
-  // 如果是编辑现有模型，初始化API Key、Base URL和Model Name
+  // If editing existing model, initialize API Key, Base URL and Model Name
   useEffect(() => {
     if (editingModelId && selectedModel) {
       setApiKey(selectedModel.apiKey || '')
@@ -1336,7 +1336,7 @@ function ModelConfigModal({
     )
   }
 
-  // 可选择的模型列表（所有支持的模型）
+  // Available model list (all supported models)
   const availableModels = allModels || []
 
   return (
@@ -1488,13 +1488,13 @@ function ModelConfigModal({
                   className="block text-sm font-semibold mb-2"
                   style={{ color: '#EAECEF' }}
                 >
-                  Model Name (可选)
+                  Model Name (Optional)
                 </label>
                 <input
                   type="text"
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value)}
-                  placeholder="例如: deepseek-chat, qwen3-max, gpt-5"
+                  placeholder="e.g., deepseek-chat, qwen3-max, gpt-5"
                   className="w-full px-3 py-2 rounded"
                   style={{
                     background: '#0B0E11',
@@ -1503,7 +1503,7 @@ function ModelConfigModal({
                   }}
                 />
                 <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
-                  留空使用默认模型名称
+                  Leave blank to use default model name
                 </div>
               </div>
 
@@ -1593,20 +1593,20 @@ function ExchangeConfigModal({
   const [loadingIP, setLoadingIP] = useState(false)
   const [copiedIP, setCopiedIP] = useState(false)
 
-  // 币安配置指南展开状态
+  // Binance configuration guide expand state
   const [showBinanceGuide, setShowBinanceGuide] = useState(false)
 
-  // Aster 特定字段
+  // Aster specific fields
   const [asterUser, setAsterUser] = useState('')
   const [asterSigner, setAsterSigner] = useState('')
   const [asterPrivateKey, setAsterPrivateKey] = useState('')
 
-  // 获取当前编辑的交易所信息
+  // Get current editing exchange info
   const selectedExchange = allExchanges?.find(
     (e) => e.id === selectedExchangeId
   )
 
-  // 如果是编辑现有交易所，初始化表单数据
+  // If editing existing exchange, initialize form data
   useEffect(() => {
     if (editingExchangeId && selectedExchange) {
       setApiKey(selectedExchange.apiKey || '')
@@ -1614,14 +1614,14 @@ function ExchangeConfigModal({
       setPassphrase('') // Don't load existing passphrase for security
       setTestnet(selectedExchange.testnet || false)
 
-      // Aster 字段
+      // Aster fields
       setAsterUser(selectedExchange.asterUser || '')
       setAsterSigner(selectedExchange.asterSigner || '')
       setAsterPrivateKey('') // Don't load existing private key for security
     }
   }, [editingExchangeId, selectedExchange])
 
-  // 加载服务器IP（当选择binance时）
+  // Load server IP (when binance is selected)
   useEffect(() => {
     if (selectedExchangeId === 'binance' && !serverIP) {
       setLoadingIP(true)
@@ -1650,13 +1650,13 @@ function ExchangeConfigModal({
     e.preventDefault()
     if (!selectedExchangeId) return
 
-    // 根据交易所类型验证不同字段
+    // Validate different fields based on exchange type
     if (selectedExchange?.id === 'binance') {
       if (!apiKey.trim() || !secretKey.trim()) return
       await onSave(selectedExchangeId, apiKey.trim(), secretKey.trim(), testnet)
     } else if (selectedExchange?.id === 'hyperliquid') {
-      if (!apiKey.trim()) return // 只验证私钥，钱包地址自动从私钥生成
-      await onSave(selectedExchangeId, apiKey.trim(), '', testnet, '') // 传空字符串，后端自动生成地址
+      if (!apiKey.trim()) return // Only validate private key, wallet address is automatically generated from private key
+      await onSave(selectedExchangeId, apiKey.trim(), '', testnet, '') // Pass empty string, backend automatically generates address
     } else if (selectedExchange?.id === 'aster') {
       if (!asterUser.trim() || !asterSigner.trim() || !asterPrivateKey.trim())
         return
@@ -1672,15 +1672,15 @@ function ExchangeConfigModal({
       )
     } else if (selectedExchange?.id === 'okx') {
       if (!apiKey.trim() || !secretKey.trim() || !passphrase.trim()) return
-      await onSave(selectedExchangeId, apiKey.trim(), secretKey.trim(), testnet)
+        await onSave(selectedExchangeId, apiKey.trim(), secretKey.trim(), testnet)
     } else {
-      // 默认情况（其他CEX交易所）
+      // Default case (other CEX exchanges)
       if (!apiKey.trim() || !secretKey.trim()) return
       await onSave(selectedExchangeId, apiKey.trim(), secretKey.trim(), testnet)
     }
   }
 
-  // 可选择的交易所列表（所有支持的交易所）
+  // Available exchange list (all supported exchanges)
   const availableExchanges = allExchanges || []
 
   return (
@@ -1789,13 +1789,13 @@ function ExchangeConfigModal({
 
           {selectedExchange && (
             <>
-              {/* Binance 和其他 CEX 交易所的字段 */}
+              {/* Fields for Binance and other CEX exchanges */}
               {(selectedExchange.id === 'binance' ||
                 selectedExchange.type === 'cex') &&
                 selectedExchange.id !== 'hyperliquid' &&
                 selectedExchange.id !== 'aster' && (
                   <>
-                    {/* 币安用户配置提示 (D1 方案) */}
+                    {/* Binance user configuration tip (D1 solution) */}
                     {selectedExchange.id === 'binance' && (
                       <div
                         className="mb-4 p-3 rounded cursor-pointer transition-colors"
@@ -1812,8 +1812,8 @@ function ExchangeConfigModal({
                               className="text-sm font-medium"
                               style={{ color: '#EAECEF' }}
                             >
-                              <strong>币安用户必读：</strong>
-                              使用「现货与合约交易」API，不要用「统一账户 API」
+                              <strong>Binance Users Must Read:</strong>
+                              Use "Spot & Futures Trading" API, do not use "Unified Account API"
                             </span>
                           </div>
                           <span style={{ color: '#8b949e' }}>
@@ -1821,7 +1821,7 @@ function ExchangeConfigModal({
                           </span>
                         </div>
 
-                        {/* 展开的详细说明 */}
+                        {/* Expanded detailed instructions */}
                         {showBinanceGuide && (
                           <div
                             className="mt-3 pt-3"
@@ -1833,36 +1833,36 @@ function ExchangeConfigModal({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <p className="mb-2" style={{ color: '#8b949e' }}>
-                              <strong>原因：</strong>统一账户 API
-                              权限结构不同，会导致订单提交失败
+                              <strong>Reason:</strong> Unified Account API
+                              has a different permission structure, which will cause order submission to fail
                             </p>
 
                             <p
                               className="font-semibold mb-1"
                               style={{ color: '#EAECEF' }}
                             >
-                              正确配置步骤：
+                              Correct Configuration Steps:
                             </p>
                             <ol
                               className="list-decimal list-inside space-y-1 mb-3"
                               style={{ paddingLeft: '0.5rem' }}
                             >
                               <li>
-                                登录币安 → 个人中心 → <strong>API 管理</strong>
+                                Log in to Binance → Profile Center → <strong>API Management</strong>
                               </li>
                               <li>
-                                创建 API → 选择「
-                                <strong>系统生成的 API 密钥</strong>」
+                                Create API → Select 「
+                                <strong>System Generated API Key</strong>」
                               </li>
                               <li>
-                                勾选「<strong>现货与合约交易</strong>」（
+                                Check 「<strong>Spot & Futures Trading</strong>」（
                                 <span style={{ color: '#f85149' }}>
-                                  不选统一账户
+                                  Do not select Unified Account
                                 </span>
                                 ）
                               </li>
                               <li>
-                                IP 限制选「<strong>无限制</strong>」或添加服务器
+                                IP Restriction: Select 「<strong>Unrestricted</strong>」 or add server
                                 IP
                               </li>
                             </ol>
@@ -1874,8 +1874,8 @@ function ExchangeConfigModal({
                                 border: '1px solid #9e6a03',
                               }}
                             >
-                              💡 <strong>多资产模式用户注意：</strong>
-                              如果您开启了多资产模式，将强制使用全仓模式。建议关闭多资产模式以支持逐仓交易。
+                              💡 <strong>Multi-Asset Mode Users Note:</strong>
+                              If you have enabled Multi-Asset Mode, it will force the use of Cross Margin mode. It is recommended to disable Multi-Asset Mode to support Isolated Margin trading.
                             </p>
 
                             <a
@@ -1885,7 +1885,7 @@ function ExchangeConfigModal({
                               className="inline-block text-sm hover:underline"
                               style={{ color: '#58a6ff' }}
                             >
-                              📖 查看币安官方教程 ↗
+                              📖 View Binance Official Tutorial ↗
                             </a>
                           </div>
                         )}
@@ -1960,7 +1960,7 @@ function ExchangeConfigModal({
                       </div>
                     )}
 
-                    {/* Binance 白名单IP提示 */}
+                    {/* Binance whitelist IP tip */}
                     {selectedExchange.id === 'binance' && (
                       <div
                         className="p-4 rounded"
@@ -2017,7 +2017,7 @@ function ExchangeConfigModal({
                   </>
                 )}
 
-              {/* Hyperliquid 交易所的字段 */}
+              {/* Fields for Hyperliquid exchange */}
               {selectedExchange.id === 'hyperliquid' && (
                 <>
                   <div>
@@ -2047,7 +2047,7 @@ function ExchangeConfigModal({
                 </>
               )}
 
-              {/* Aster 交易所的字段 */}
+              {/* Fields for Aster exchange */}
               {selectedExchange.id === 'aster' && (
                 <>
                   <div>
@@ -2201,7 +2201,7 @@ function ExchangeConfigModal({
                   (!apiKey.trim() ||
                     !secretKey.trim() ||
                     !passphrase.trim())) ||
-                (selectedExchange.id === 'hyperliquid' && !apiKey.trim()) || // 只验证私钥，钱包地址可选
+                (selectedExchange.id === 'hyperliquid' && !apiKey.trim()) || // Only validate private key, wallet address is optional
                 (selectedExchange.id === 'aster' &&
                   (!asterUser.trim() ||
                     !asterSigner.trim() ||
