@@ -1,0 +1,60 @@
+{
+	"folders": [
+	  { "name": "backend", "path": "." },
+	  { "name": "frontend", "path": "./web" }
+	],
+	"settings": {
+	  "editor.formatOnSave": true,
+	  
+	  "files.exclude": {
+		"**/node_modules": true,
+		"**/dist": true,
+		"**/build": true,
+		"**/trading.db": true,
+		"**/decision_logs": true
+	  },
+	  
+	  "files.watcherExclude": {
+		"**/node_modules/**": true,
+		"**/.git/objects/**": true
+	  },
+	  
+	  "[go]": {
+		"editor.defaultFormatter": "golang.go",
+		"editor.codeActionsOnSave": {
+		  "source.organizeImports": "explicit"
+		}
+	  },
+	  
+	  "[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+	  },
+	  "[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+	  },
+	  "[javascriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+	  },
+	  "[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+	  },
+	  "[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	  },
+	  "[css]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	  }
+	},
+	"extensions": {
+	  "recommendations": [
+		"golang.go",
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"bradlc.vscode-tailwindcss"
+	  ]
+	}
+  }
